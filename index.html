@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Виртуальный Арбат</title>
+    <!-- Используем надежную версию библиотеки -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Segoe UI', sans-serif; overflow: hidden; background-color: #1a1a1a; }
+
+        /* Главная страница */
+        #main-page {
+            position: absolute; width: 100%; height: 100%;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('praga.jpg');
+            background-size: cover; background-position: center;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 1000; color: white; text-align: center; 
+            transition: opacity 0.8s ease;
+        }
+
+        #main-page.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        .welcome-box { background: rgba(0,0,0,0.85); padding: 40px; border-radius: 20px; border: 2px solid #f1c40f; max-width: 600px; margin: 20px; }
+        .welcome-box h1 { font-size: clamp(32px, 8vw, 48px); margin-bottom: 10px; color: #f1c40f; }
+        .welcome-box p { font-size: 18px; line-height: 1.6; margin-bottom: 30px; }
+
+        .start-btn {
+            padding: 15px 40px; font-size: 20px; font-weight: bold;
+            background: #f1c40f; color: #2c3e50; border: none;
+            border-radius: 50px; cursor: pointer; transition: 0.3s;
+        }
+        .start-btn:hover { background: #fff; transform: scale(1.1); }
+
+        /* Панели управления */
+        #panorama-ui { display: none; }
+        #panorama-ui.visible { display: block; }
+
+        .bottom-nav {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            z-index: 100; display: flex; gap: 10px; background: rgba(0, 0, 0, 0.7);
+            padding: 12px 20px; border-radius: 50px; backdrop-filter: blur(10px);
+            max-width: 90vw; overflow-x: auto;
+        }
+
+        .nav-btn {
+            padding: 10px 18px; border: none; border-radius: 20px;
+            background: #f1c40f; color: #2c3e50; font-weight: bold;
+            cursor: pointer; white-space: nowrap;
+        }
+
+        /* Боковая шторка */
+        #side-panel {
+            position: absolute; right: -450px; top: 0; width: 380px; height: 100%;
+            background: rgba(255, 255, 255, 0.98); z-index: 200;
+            transition: 0.5s ease-in-out; padding: 40px 30px; box-shadow: -5px 0 15px rgba(0,0,0,0.3);
+            display: flex; flex-direction: column;
+            box-sizing: border-box;
+        }
+        #side-panel.open { right: 0; }
+
+        .toggle-info {
+            position: absolute; left: -50px; top: 50%; transform: translateY(-50%);
+            background: #f1c40f; width: 50px; height: 60px;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; border-radius: 10px 0 0 10px; font-weight: bold; font-size: 20px;
+        }
+
+        #side-panel h2 { 
+            color: #2c3e50; 
+            font-size: 28px; 
+            margin-top: 0;
+            border-bottom: 3px solid #f1c40f; 
+            padding-bottom: 15px; 
+        }
+        
+        #panel-content {
+            font-size: 17px;
+            color: #333;
+            line-height: 1.7;
+            overflow-y: auto;
+        }
+
+        .fact-box {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 5px solid #f1c40f;
+            font-style: italic;
+            font-size: 15px;
+        }
+
+        /* Индикация ошибки */
+        #error-log {
+            position: fixed; top: 10px; width: 100%; text-align: center;
+            color: #ff4444; z-index: 2000; font-weight: bold; pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="error-log"></div>
+
+    <!-- Главная страница -->
+    <div id="main-page">
+        <div class="welcome-box">
+            <h1>Арбат 360°</h1>
+            <p>Интерактивное путешествие по историческому центру Москвы. Посмотрите на легендарный ресторан "Прага" и другие памятные места.</p>
+            <button class="start-btn" onclick="startTour()">Начать прогулку</button>
+        </div>
+    </div>
+
+    <!-- UI Панорамы -->
+    <div id="panorama-ui">
+        <div class="bottom-nav">
+            <button class="nav-btn" onclick="changeScene('praga')">Прага</button>
+            <button class="nav-btn" onclick="changeScene('teatr')">Вахтангова</button>
+            <button class="nav-btn" onclick="changeScene('pushkin')">Дом Пушкина</button>
+        </div>
+
+        <div id="side-panel">
+            <div class="toggle-info" onclick="toggleSidePanel()">ℹ</div>
+            <h2 id="panel-title">Ресторан "Прага"</h2>
+            <div id="panel-content">
+                <!-- Контент заполняется из JS -->
+            </div>
+            <button style="margin-top:auto; width:100%; padding:12px; background:#2c3e50; color:white; border:none; border-radius:5px; cursor:pointer;" onclick="location.reload()">В главное меню</button>
+        </div>
+    </div>
+
+    <a-scene loading-screen="enabled: false">
+        <a-assets timeout="10000">
+            <img id="tex-praga" src="praga.jpg" onerror="logError('Ошибка: praga.jpg не найден!')">
+            <img id="tex-teatr" src="teatr.jpg" onerror="logError('Ошибка: teatr.jpg не найден!')">
+            <img id="tex-pushkin" src="pushkin.jpg" onerror="logError('Ошибка: pushkin.jpg не найден!')">
+        </a-assets>
+
+        <a-sky id="main-sky" src="#tex-praga" rotation="0 -90 0"></a-sky>
+        <a-entity camera look-controls position="0 1.6 0"></a-entity>
+    </a-scene>
+
+    <script>
+        const scenes = {
+            praga: { 
+                img: '#tex-praga', 
+                name: 'Ресторан "Прага"', 
+                rot: -90, 
+                info: `
+                    <p>История этого знаменитого здания на углу Арбата началась в 1872 году. Изначально это был недорогой трактир, который облюбовали извозчики, называвшие его на свой лад — "Брага".</p>
+                    <p>Всё изменилось в 1896 году, когда купец Семен Тарарыкин выиграл здание в бильярд. Он пригласил архитектора Льва Кекушева, чтобы превратить трактир в первоклассный ресторан с зеркальными залами и зимним садом на крыше.</p>
+                    <div class="fact-box">
+                        <b>Интересный факт:</b> Именно здесь в советское время кондитеры разработали легендарный рецепт торта "Прага", за которым выстраивались многочасовые очереди.
+                    </div>
+                    <p>Ресторан посещали Чехов, Куприн и Репин. Сегодня здание признано объектом культурного наследия.</p>
+                ` 
+            },
+            teatr: { 
+                img: '#tex-teatr', 
+                name: 'Театр Вахтангова', 
+                rot: 0, 
+                info: `
+                    <p>Государственный академический театр имени Евгения Вахтангова — один из самых популярных и престижных театров Москвы, расположенный в самом сердце Арбата.</p>
+                    <p>Театр вырос из Студенческой драматической студии, которой руководил ученик Станиславского — Евгений Вахтангов. Официальной датой основания считается 13 ноября 1921 года.</p>
+                    <div class="fact-box">
+                        <b>Интересный факт:</b> Главным символом театра является спектакль "Принцесса Турандот", который идет на этой сцене уже более столетия с перерывами.
+                    </div>
+                    <p>Здание сильно пострадало во время бомбардировок 1941 года, но было полностью восстановлено в величественном классическом стиле, который мы видим сегодня.</p>
+                `
+            },
+            pushkin: { 
+                img: '#tex-pushkin', 
+                name: 'Дом А.С. Пушкина', 
+                rot: 110, 
+                info: `
+                    <p>Мемориальная квартира Александра Сергеевича Пушкина — единственный в Москве музейный памятник, посвященный жизни великого поэта в этом городе.</p>
+                    <p>В этом старинном особняке на втором этаже Пушкин арендовал пять комнат. Сюда он привез свою молодую жену Наталью Гончарову сразу после венчания в феврале 1831 года.</p>
+                    <div class="fact-box">
+                        <b>Интересный факт:</b> Именно в этих стенах поэт устроил свой знаменитый "мальчишник" накануне свадьбы, где прощался с холостой жизнью.
+                    </div>
+                    <p>Семья прожила здесь всего три месяца, но этот период Пушкин называл одним из самых счастливых в своей жизни. Сейчас здесь воссозданы интерьеры той эпохи.</p>
+                `
+            }
+        };
+
+        function logError(msg) {
+            document.getElementById('error-log').innerText = msg;
+        }
+
+        function startTour() {
+            document.getElementById('main-page').classList.add('hidden');
+            document.getElementById('panorama-ui').classList.add('visible');
+            
+            // Инициализируем контент первой сцены
+            changeScene('praga');
+            
+            setTimeout(() => {
+                const scene = document.querySelector('a-scene');
+                scene.resize();
+                document.getElementById('side-panel').classList.add('open');
+            }, 500);
+        }
+
+        function changeScene(key) {
+            const scene = scenes[key];
+            const sky = document.getElementById('main-sky');
+            sky.setAttribute('src', scene.img);
+            sky.setAttribute('rotation', `0 ${scene.rot} 0`);
+            
+            // Обновляем заголовок и текст в шторке
+            document.getElementById('panel-title').innerText = scene.name;
+            document.getElementById('panel-content').innerHTML = scene.info;
+            
+            document.getElementById('side-panel').classList.add('open');
+        }
+
+        function toggleSidePanel() {
+            document.getElementById('side-panel').classList.toggle('open');
+        }
+    </script>
+</body>
+</html>
