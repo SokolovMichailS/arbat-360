@@ -7,6 +7,12 @@
     <!-- Используем надежную версию библиотеки -->
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <style>
+        /* Chosen Palette: Arbat Gold & Slate */
+        /* Application Structure Plan: 
+           Одностраничное VR-приложение с навигацией по 360-панорамам. 
+           Информационная архитектура: стартовый экран для инициализации ресурсов и основной VR-режим.
+           Взаимодействие реализовано через JS-стейт (scenes), меняющий окружение и контент боковой панели.
+        */
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Segoe UI', sans-serif; overflow: hidden; background-color: #1a1a1a; }
 
         /* Главная страница */
@@ -46,25 +52,49 @@
         .nav-btn {
             padding: 10px 18px; border: none; border-radius: 20px;
             background: #f1c40f; color: #2c3e50; font-weight: bold;
-            cursor: pointer; white-space: nowrap;
+            cursor: pointer; white-space: nowrap; transition: 0.2s;
         }
+        .nav-btn:hover { background: #fff; }
 
         /* Боковая шторка */
         #side-panel {
-            position: absolute; right: -450px; top: 0; width: 380px; height: 100%;
-            background: rgba(255, 255, 255, 0.98); z-index: 200;
-            transition: 0.5s ease-in-out; padding: 40px 30px; box-shadow: -5px 0 15px rgba(0,0,0,0.3);
-            display: flex; flex-direction: column;
+            position: absolute; 
+            right: -380px; /* Прячем ровно на ширину панели */
+            top: 0; 
+            width: 380px; 
+            height: 100%;
+            background: rgba(255, 255, 255, 0.98); 
+            z-index: 200;
+            transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
+            padding: 40px 30px; 
+            box-shadow: -5px 0 15px rgba(0,0,0,0.3);
+            display: flex; 
+            flex-direction: column;
             box-sizing: border-box;
         }
         #side-panel.open { right: 0; }
 
+        /* Кнопка-ярлык, которая всегда видна */
         .toggle-info {
-            position: absolute; left: -50px; top: 50%; transform: translateY(-50%);
-            background: #f1c40f; width: 50px; height: 60px;
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer; border-radius: 10px 0 0 10px; font-weight: bold; font-size: 20px;
+            position: absolute; 
+            left: -50px; /* Выносим кнопку за левый край панели */
+            top: 50%; 
+            transform: translateY(-50%);
+            background: #f1c40f; 
+            width: 50px; 
+            height: 60px;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            cursor: pointer; 
+            border-radius: 15px 0 0 15px; 
+            font-weight: bold; 
+            font-size: 24px;
+            color: #2c3e50;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+            transition: 0.3s;
         }
+        .toggle-info:hover { background: #fff; }
 
         #side-panel h2 { 
             color: #2c3e50; 
@@ -79,6 +109,7 @@
             color: #333;
             line-height: 1.7;
             overflow-y: auto;
+            margin-bottom: 20px;
         }
 
         .fact-box {
@@ -119,7 +150,9 @@
         </div>
 
         <div id="side-panel">
+            <!-- Эта кнопка теперь всегда доступна на краю экрана -->
             <div class="toggle-info" onclick="toggleSidePanel()">ℹ</div>
+            
             <h2 id="panel-title">Ресторан "Прага"</h2>
             <div id="panel-content">
                 <!-- Контент заполняется из JS -->
@@ -128,8 +161,15 @@
         </div>
     </div>
 
+    <!-- Visualization & Content Choices: 
+         - A-Frame (Canvas) -> VR Experience -> Interactive Navigation -> Allow 360 viewing.
+         - HTML/CSS -> UI Controls -> Button interactions -> Toggle side panel and switch scenes.
+         - JS Logic -> State Management -> Update sky source and text content dynamically.
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. 
+    -->
     <a-scene loading-screen="enabled: false">
         <a-assets timeout="10000">
+            <!-- Убедитесь, что файлы находятся в той же папке, что и этот HTML -->
             <img id="tex-praga" src="praga.jpg" onerror="logError('Ошибка: praga.jpg не найден!')">
             <img id="tex-teatr" src="teatr.jpg" onerror="logError('Ошибка: teatr.jpg не найден!')">
             <img id="tex-pushkin" src="pushkin.jpg" onerror="logError('Ошибка: pushkin.jpg не найден!')">
@@ -147,11 +187,10 @@
                 rot: -90, 
                 info: `
                     <p>История этого знаменитого здания на углу Арбата началась в 1872 году. Изначально это был недорогой трактир, который облюбовали извозчики, называвшие его на свой лад — "Брага".</p>
-                    <p>Всё изменилось в 1896 году, когда купец Семен Тарарыкин выиграл здание в бильярд. Он пригласил архитектора Льва Кекушева, чтобы превратить трактир в первоклассный ресторан с зеркальными залами и зимним садом на крыше.</p>
+                    <p>Всё изменилось в 1896 году, когда купец Семен Тарарыкин выиграл здание в бильярд. Он пригласил архитектора Льва Кекушева, чтобы превратить трактир в первоклассный ресторан.</p>
                     <div class="fact-box">
-                        <b>Интересный факт:</b> Именно здесь в советское время кондитеры разработали легендарный рецепт торта "Прага", за которым выстраивались многочасовые очереди.
+                        <b>Интересный факт:</b> Именно здесь в советское время кондитеры разработали легендарный рецепт торта "Прага".
                     </div>
-                    <p>Ресторан посещали Чехов, Куприн и Репин. Сегодня здание признано объектом культурного наследия.</p>
                 ` 
             },
             teatr: { 
@@ -159,12 +198,11 @@
                 name: 'Театр Вахтангова', 
                 rot: 0, 
                 info: `
-                    <p>Государственный академический театр имени Евгения Вахтангова — один из самых популярных и престижных театров Москвы, расположенный в самом сердце Арбата.</p>
-                    <p>Театр вырос из Студенческой драматической студии, которой руководил ученик Станиславского — Евгений Вахтангов. Официальной датой основания считается 13 ноября 1921 года.</p>
+                    <p>Государственный академический театр имени Евгения Вахтангова — один из самых престижных театров Москвы.</p>
+                    <p>Официальной датой основания считается 13 ноября 1921 года.</p>
                     <div class="fact-box">
-                        <b>Интересный факт:</b> Главным символом театра является спектакль "Принцесса Турандот", который идет на этой сцене уже более столетия с перерывами.
+                        <b>Интересный факт:</b> Главным символом театра является спектакль "Принцесса Турандот".
                     </div>
-                    <p>Здание сильно пострадало во время бомбардировок 1941 года, но было полностью восстановлено в величественном классическом стиле, который мы видим сегодня.</p>
                 `
             },
             pushkin: { 
@@ -172,12 +210,11 @@
                 name: 'Дом А.С. Пушкина', 
                 rot: 110, 
                 info: `
-                    <p>Мемориальная квартира Александра Сергеевича Пушкина — единственный в Москве музейный памятник, посвященный жизни великого поэта в этом городе.</p>
-                    <p>В этом старинном особняке на втором этаже Пушкин арендовал пять комнат. Сюда он привез свою молодую жену Наталью Гончарову сразу после венчания в феврале 1831 года.</p>
+                    <p>Мемориальная квартира Александра Сергеевича Пушкина на Арбате.</p>
+                    <p>Сюда он привез свою молодую жену Наталью Гончарову сразу после венчания в 1831 году.</p>
                     <div class="fact-box">
-                        <b>Интересный факт:</b> Именно в этих стенах поэт устроил свой знаменитый "мальчишник" накануне свадьбы, где прощался с холостой жизнью.
+                        <b>Интересный факт:</b> Именно в этих стенах поэт устроил свой знаменитый "мальчишник" накануне свадьбы.
                     </div>
-                    <p>Семья прожила здесь всего три месяца, но этот период Пушкин называл одним из самых счастливых в своей жизни. Сейчас здесь воссозданы интерьеры той эпохи.</p>
                 `
             }
         };
@@ -189,14 +226,11 @@
         function startTour() {
             document.getElementById('main-page').classList.add('hidden');
             document.getElementById('panorama-ui').classList.add('visible');
-            
-            // Инициализируем контент первой сцены
             changeScene('praga');
             
             setTimeout(() => {
                 const scene = document.querySelector('a-scene');
                 scene.resize();
-                document.getElementById('side-panel').classList.add('open');
             }, 500);
         }
 
@@ -206,10 +240,10 @@
             sky.setAttribute('src', scene.img);
             sky.setAttribute('rotation', `0 ${scene.rot} 0`);
             
-            // Обновляем заголовок и текст в шторке
             document.getElementById('panel-title').innerText = scene.name;
             document.getElementById('panel-content').innerHTML = scene.info;
             
+            // При смене сцены всегда открываем шторку, чтобы показать инфо
             document.getElementById('side-panel').classList.add('open');
         }
 
