@@ -12,6 +12,7 @@
            Одностраничное VR-приложение с навигацией по 360-панорамам. 
            Информационная архитектура: стартовый экран для инициализации ресурсов и основной VR-режим.
            Взаимодействие реализовано через JS-стейт (scenes), меняющий окружение и контент боковой панели.
+           Панель при закрытии остается видимой в виде ярлыка для повторного открытия.
         */
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Segoe UI', sans-serif; overflow: hidden; background-color: #1a1a1a; }
 
@@ -59,7 +60,7 @@
         /* Боковая шторка */
         #side-panel {
             position: absolute; 
-            right: -380px; /* Прячем ровно на ширину панели */
+            right: -380px; /* Скрываем ровно на ширину панели */
             top: 0; 
             width: 380px; 
             height: 100%;
@@ -74,7 +75,7 @@
         }
         #side-panel.open { right: 0; }
 
-        /* Кнопка-ярлык, которая всегда видна */
+        /* Кнопка-ярлык, которая всегда видна у края */
         .toggle-info {
             position: absolute; 
             left: -50px; /* Выносим кнопку за левый край панели */
@@ -162,14 +163,13 @@
     </div>
 
     <!-- Visualization & Content Choices: 
-         - A-Frame (Canvas) -> VR Experience -> Interactive Navigation -> Allow 360 viewing.
-         - HTML/CSS -> UI Controls -> Button interactions -> Toggle side panel and switch scenes.
-         - JS Logic -> State Management -> Update sky source and text content dynamically.
+         - A-Frame (Canvas) -> VR Experience -> Interactive Navigation.
+         - HTML/CSS -> Side Panel with visible toggle tab.
+         - JS Logic -> Dynamic updates for images and info.
          CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. 
     -->
     <a-scene loading-screen="enabled: false">
         <a-assets timeout="10000">
-            <!-- Убедитесь, что файлы находятся в той же папке, что и этот HTML -->
             <img id="tex-praga" src="praga.jpg" onerror="logError('Ошибка: praga.jpg не найден!')">
             <img id="tex-teatr" src="teatr.jpg" onerror="logError('Ошибка: teatr.jpg не найден!')">
             <img id="tex-pushkin" src="pushkin.jpg" onerror="logError('Ошибка: pushkin.jpg не найден!')">
@@ -186,10 +186,10 @@
                 name: 'Ресторан "Прага"', 
                 rot: -90, 
                 info: `
-                    <p>История этого знаменитого здания на углу Арбата началась в 1872 году. Изначально это был недорогой трактир, который облюбовали извозчики, называвшие его на свой лад — "Брага".</p>
-                    <p>Всё изменилось в 1896 году, когда купец Семен Тарарыкин выиграл здание в бильярд. Он пригласил архитектора Льва Кекушева, чтобы превратить трактир в первоклассный ресторан.</p>
+                    <p>История этого знаменитого здания на углу Арбата началась в 1872 году. Изначально это был недорогой трактир, который облюбовали извозчики.</p>
+                    <p>Всё изменилось в 1896 году, когда купец Семен Тарарыкин выиграл здание в бильярд. Он превратил его в первоклассный ресторан.</p>
                     <div class="fact-box">
-                        <b>Интересный факт:</b> Именно здесь в советское время кондитеры разработали легендарный рецепт торта "Прага".
+                        <b>Интересный факт:</b> Именно здесь в советское время разработали легендарный рецепт торта "Прага".
                     </div>
                 ` 
             },
@@ -243,7 +243,6 @@
             document.getElementById('panel-title').innerText = scene.name;
             document.getElementById('panel-content').innerHTML = scene.info;
             
-            // При смене сцены всегда открываем шторку, чтобы показать инфо
             document.getElementById('side-panel').classList.add('open');
         }
 
